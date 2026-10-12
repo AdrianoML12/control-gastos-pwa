@@ -1,0 +1,1402 @@
+<!DOCTYPE html><html class="dark" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Control de Gastos Pro - PWA</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Lucide Icons CDN -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Google Fonts: Inter & Outfit -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Outfit:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#08090d',
+              card: '#0e121a',
+              cardTrans: 'rgba(15, 20, 31, 0.72)',
+              accent: '#3b82f6',
+              violet: '#8b5cf6',
+              emerald: '#10b981',
+              rose: '#f43f5e',
+            }
+          },
+          boxShadow: {
+            'glow-blue': '0 0 25px -5px rgba(59, 130, 246, 0.4)',
+            'glow-purple': '0 0 30px -5px rgba(139, 92, 246, 0.35)',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Custom Scrollbar & Glassmorphism styles */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 14, 22, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    .glass-panel {
+      background: rgba(16, 22, 34, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-input {
+      background: rgba(13, 17, 26, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+    }
+    .glass-input:focus {
+      border-color: rgba(99, 102, 241, 0.7);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+    }
+    .mesh-gradient {
+      background: radial-gradient(circle at 10% 15%, rgba(37, 99, 235, 0.18) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 40%, rgba(124, 58, 237, 0.16) 0%, transparent 40%),
+                  radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+                  #08090d;
+    }
+    .value-pulse {
+      animation: pulseHighlight 0.45s ease-out;
+    }
+    @keyframes pulseHighlight {
+      0% { transform: scale(1.05); filter: brightness(1.3); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    .slide-in-row {
+      animation: slideInDown 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideInDown {
+      0% { opacity: 0; transform: translateY(-12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-[#050608] text-slate-100 font-sans min-h-screen flex justify-center selection:bg-blue-600 selection:text-white">
+<!-- Mobile Viewport Outer Frame -->
+<div class="w-full max-w-[430px] min-h-screen bg-[#08090d] mesh-gradient relative flex flex-col shadow-2xl border-x border-white/5 overflow-x-hidden pb-24">
+<!-- Top System Bar Mockup -->
+<div class="w-full px-6 pt-3 pb-1 flex justify-between items-center text-xs text-slate-400 font-medium select-none z-30">
+<span id="system-time" class="">17:01</span>
+<div class="flex items-center gap-1.5 text-slate-300">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="signal" aria-hidden="true" class="lucide lucide-signal w-3.5 h-3.5"><path d="M2 20h.01"></path><path d="M7 20v-4"></path><path d="M12 20v-8"></path><path d="M17 20V8"></path><path d="M22 4v16"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="wifi" aria-hidden="true" class="lucide lucide-wifi w-3.5 h-3.5"><path d="M12 20h.01"></path><path d="M2 8.82a15 15 0 0 1 20 0"></path><path d="M5 12.859a10 10 0 0 1 14 0"></path><path d="M8.5 16.429a5 5 0 0 1 7 0"></path></svg>
+<div class="w-5 h-2.5 border border-slate-300 rounded-sm relative p-0.5 flex items-center">
+<div class="w-full h-full bg-slate-300 rounded-2xs"></div>
+<div class="absolute -right-1 top-0.5 w-0.5 h-1.5 bg-slate-300 rounded-r-xs"></div>
+</div>
+</div>
+</div>
+<!-- PWA Application Header -->
+<header class="px-5 pt-3 pb-4 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md bg-[#08090d]/80 border-b border-white/5">
+<div class="flex items-center gap-3">
+<!-- User Avatar with status ring -->
+<div class="relative cursor-pointer group" onclick="switchTab('profile')">
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 p-0.5 shadow-glow-blue transition-transform active:scale-95">
+<div class="w-full h-full bg-[#0d111a] rounded-full flex items-center justify-center font-display font-bold text-white text-base">
+              A
+            </div>
+</div>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#08090d] rounded-full"></span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-xs uppercase tracking-wider font-semibold text-blue-400 font-display">Plan Pro</span>
+<span class="inline-block px-1.5 py-0.5 text-[9px] bg-blue-500/20 text-blue-300 rounded border border-blue-500/30 font-medium">PWA</span>
+</div>
+<h1 class="text-base font-bold text-white leading-tight font-display flex items-center gap-1">
+            Hola, Alex <span class="text-sm">👋</span>
+</h1>
+</div>
+</div>
+<!-- Header Action Buttons -->
+<div class="flex items-center gap-2">
+<button class="w-9 h-9 rounded-full glass-card flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all" onclick="toggleQuickSearch()" title="Buscar movimientos">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" aria-hidden="true" class="lucide lucide-search w-4 h-4"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+</button>
+<button class="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-glow-blue active:scale-90 transition-all cursor-pointer" onclick="openTransactionModal()" title="Añadir nuevo movimiento">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus" aria-hidden="true" class="lucide lucide-plus w-5 h-5"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+</button>
+</div>
+</header>
+<!-- Quick Search Bar (Collapsible) -->
+<div class="hidden px-5 pt-2 pb-3 transition-all duration-300" id="quickSearchPanel">
+<div class="relative">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" aria-hidden="true" class="lucide lucide-search w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg>
+<input class="w-full glass-input rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none" id="searchInput" oninput="filterTransactions(this.value)" placeholder="Buscar por concepto o categoría..." type="text">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" onclick="clearSearch()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-3.5 h-3.5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+</button>
+</div>
+</div>
+<!-- MAIN SCROLLABLE CONTENT VIEW CONTAINER -->
+<main class="flex-1 px-5 pt-3 space-y-5">
+<!-- ================= SECTION 1: TAB INICIO ================= -->
+<section class="space-y-5 animate-fade" id="tab-home">
+<!-- Revolut-style Dark Hero Balance Card -->
+<div class="relative overflow-hidden rounded-3xl p-6 glass-panel border border-white/10 shadow-glass">
+<!-- Ambient Glow Blobs inside Card -->
+<div class="absolute -top-12 -right-12 w-36 h-36 bg-blue-600/30 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-600/25 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col">
+<div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+<span class="tracking-wide uppercase font-semibold font-display flex items-center gap-1.5 text-slate-300">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="wallet" aria-hidden="true" class="lucide lucide-wallet w-3.5 h-3.5 text-blue-400"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"></path><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path></svg> BALANCE TOTAL
+              </span>
+<span class="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-slate-300 border border-white/10 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> PEN (S/.)
+              </span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-xs text-slate-400 font-medium">S/.</span>
+<span class="text-3xl sm:text-4xl font-extrabold tracking-tight font-display text-white transition-all duration-300 value-pulse" id="heroBalance">3,450.00</span>
+</div>
+<!-- Inflow / Outflow Pill Cards -->
+<div class="grid grid-cols-2 gap-2.5 mt-5 pt-4 border-t border-white/10">
+<div class="bg-black/30 rounded-2xl p-3 border border-white/5 flex items-center gap-3">
+<div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-down-left" aria-hidden="true" class="lucide lucide-arrow-down-left w-4 h-4"><path d="M17 7 7 17"></path><path d="M17 17H7V7"></path></svg>
+</div>
+<div class="min-w-0">
+<span class="text-[10px] text-slate-400 block uppercase font-medium">Ingresos</span>
+<span class="text-xs sm:text-sm font-bold text-emerald-400 font-display transition-all duration-300 truncate block value-pulse" id="heroIncome">+S/. 5,200.00</span>
+</div>
+</div>
+<div class="bg-black/30 rounded-2xl p-3 border border-white/5 flex items-center gap-3">
+<div class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center text-rose-400 shrink-0">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right w-4 h-4"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+</div>
+<div class="min-w-0">
+<span class="text-[10px] text-slate-400 block uppercase font-medium">Gastos</span>
+<span class="text-xs sm:text-sm font-bold text-rose-400 font-display transition-all duration-300 truncate block value-pulse" id="heroExpense">-S/. 1,750.00</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Actions Horizontal Grid -->
+<div class="grid grid-cols-3 gap-3">
+<button class="glass-card hover:border-blue-500/50 p-3.5 rounded-2xl flex flex-col items-center justify-center gap-2 group transition-all active:scale-95 cursor-pointer" onclick="openTransactionModal()">
+<div class="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-glow-blue">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle w-5 h-5"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>
+</div>
+<span class="text-xs font-semibold text-slate-200">Añadir</span>
+</button>
+<button class="glass-card hover:border-purple-500/50 p-3.5 rounded-2xl flex flex-col items-center justify-center gap-2 group transition-all active:scale-95 cursor-pointer" onclick="switchTab('scanner')">
+<div class="w-10 h-10 rounded-2xl bg-purple-500/15 text-purple-400 border border-purple-500/25 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all shadow-glow-purple">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="scan-line" aria-hidden="true" class="lucide lucide-scan-line w-5 h-5"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M7 12h10"></path></svg>
+</div>
+<span class="text-xs font-semibold text-slate-200">Escanear</span>
+</button>
+<button class="glass-card hover:border-indigo-500/50 p-3.5 rounded-2xl flex flex-col items-center justify-center gap-2 group transition-all active:scale-95 cursor-pointer" onclick="switchTab('analytics')">
+<div class="w-10 h-10 rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/25 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="bar-chart-3" aria-hidden="true" class="lucide lucide-bar-chart-3 w-5 h-5"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+</div>
+<span class="text-xs font-semibold text-slate-200">Reporte</span>
+</button>
+</div>
+<!-- Recent Transactions Container -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<h2 class="text-sm font-bold text-white uppercase tracking-wider font-display flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="receipt" aria-hidden="true" class="lucide lucide-receipt w-4 h-4 text-blue-400"><path d="M12 17V7"></path><path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8"></path><path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z"></path></svg> MOVIMIENTOS RECIENTES
+            </h2>
+
+</div>
+<!-- Transaction List Items (Populated and reactively managed via JS) -->
+<div class="space-y-2" id="transactionsList">
+          <div id="tx-item-1" class="glass-card hover:bg-white/[0.04] p-3.5 rounded-2xl flex items-center justify-between border border-white/5 transition-all group slide-in-row">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="wallet-cards" aria-hidden="true" class="lucide lucide-wallet-cards w-4 h-4"><path d="M3 11h3.75a2 2 0 0 1 1.6.8l.45.6a4 4 0 0 0 6.4 0l.45-.6a2 2 0 0 1 1.6-.8H21"></path><path d="M3 7h18"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-white truncate">Salario Tech Consulting</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="font-medium text-slate-300">Ingreso</span>
+                  <span class="">•</span>
+                  <span class="">2025-05-01</span>
+                  <span class="hidden sm:inline italic text-slate-500 truncate max-w-[120px]">"Abono en cuenta corriente"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-bold font-display text-emerald-400">+S/. 5,200.00</span>
+              <button type="button" onclick="deleteTransaction(1)" title="Eliminar movimiento" class="w-7 h-7 rounded-lg glass-card text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-3.5 h-3.5"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        
+          <div id="tx-item-2" class="glass-card hover:bg-white/[0.04] p-3.5 rounded-2xl flex items-center justify-between border border-white/5 transition-all group ">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0 border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="utensils" aria-hidden="true" class="lucide lucide-utensils w-4 h-4"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-white truncate">Supermercado Wong Miraflores</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="font-medium text-slate-300">Alimentación</span>
+                  <span class="">•</span>
+                  <span class="">2025-05-02</span>
+                  <span class="hidden sm:inline italic text-slate-500 truncate max-w-[120px]">"Ticket de compras mensuales"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-bold font-display text-rose-400">-S/. 480.50</span>
+              <button type="button" onclick="deleteTransaction(2)" title="Eliminar movimiento" class="w-7 h-7 rounded-lg glass-card text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-3.5 h-3.5"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        
+          <div id="tx-item-3" class="glass-card hover:bg-white/[0.04] p-3.5 rounded-2xl flex items-center justify-between border border-white/5 transition-all group ">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0 border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="car" aria-hidden="true" class="lucide lucide-car w-4 h-4"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-white truncate">Repsol Gasolina 97</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="font-medium text-slate-300">Transporte</span>
+                  <span class="">•</span>
+                  <span class="">2025-05-03</span>
+                  <span class="hidden sm:inline italic text-slate-500 truncate max-w-[120px]">"Tanqueo de vehículo"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-bold font-display text-rose-400">-S/. 190.00</span>
+              <button type="button" onclick="deleteTransaction(3)" title="Eliminar movimiento" class="w-7 h-7 rounded-lg glass-card text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-3.5 h-3.5"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        
+          <div id="tx-item-4" class="glass-card hover:bg-white/[0.04] p-3.5 rounded-2xl flex items-center justify-between border border-white/5 transition-all group ">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0 border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="home" aria-hidden="true" class="lucide lucide-home w-4 h-4"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-white truncate">Alquiler &amp; Mantenimiento</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="font-medium text-slate-300">Vivienda</span>
+                  <span class="">•</span>
+                  <span class="">2025-05-04</span>
+                  <span class="hidden sm:inline italic text-slate-500 truncate max-w-[120px]">"Servicio mensual"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-bold font-display text-rose-400">-S/. 850.00</span>
+              <button type="button" onclick="deleteTransaction(4)" title="Eliminar movimiento" class="w-7 h-7 rounded-lg glass-card text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-3.5 h-3.5"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        
+          <div id="tx-item-5" class="glass-card hover:bg-white/[0.04] p-3.5 rounded-2xl flex items-center justify-between border border-white/5 transition-all group ">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-pink-500/15 text-pink-400 flex items-center justify-center shrink-0 border border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="film" aria-hidden="true" class="lucide lucide-film w-4 h-4"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M7 3v18"></path><path d="M3 7.5h4"></path><path d="M3 12h18"></path><path d="M3 16.5h4"></path><path d="M17 3v18"></path><path d="M17 7.5h4"></path><path d="M17 16.5h4"></path></svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-white truncate">Cine &amp; Streaming Plus</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="font-medium text-slate-300">Entretenimiento</span>
+                  <span class="">•</span>
+                  <span class="">2025-05-05</span>
+                  <span class="hidden sm:inline italic text-slate-500 truncate max-w-[120px]">"Suscripción + entradas cine"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-bold font-display text-rose-400">-S/. 229.50</span>
+              <button type="button" onclick="deleteTransaction(5)" title="Eliminar movimiento" class="w-7 h-7 rounded-lg glass-card text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-3.5 h-3.5"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+</div>
+</section>
+<!-- ================= SECTION 2: TAB RECEIPT SCANNER ================= -->
+<section class="space-y-4 animate-fade hidden" id="tab-scanner">
+<div class="flex items-center justify-between mb-1">
+<div>
+<h2 class="text-lg font-bold text-white font-display">Escáner de Facturas &amp; Recibos</h2>
+<p class="text-xs text-slate-400">Carga recibos físicos o tickets para auto-extracción</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">
+            OCR Pro
+          </span>
+</div>
+<!-- Upload & Drop Zone -->
+<div class="cursor-pointer border-2 border-dashed border-white/20 hover:border-purple-500/60 rounded-3xl p-6 text-center transition-all bg-black/20 hover:bg-white/[0.02] relative group" id="dropZone" onclick="triggerFileInput()">
+<input accept="image/*" class="hidden" id="receiptFileInput" onchange="handleFileSelect(event)" type="file">
+<div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-purple-600/30 to-blue-600/30 border border-purple-500/30 flex items-center justify-center text-purple-300 group-hover:scale-105 transition-transform shadow-glow-purple">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="camera" aria-hidden="true" class="lucide lucide-camera w-7 h-7"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+</div>
+<p class="text-xs font-bold text-slate-200 mb-0.5">Toca para tomar foto o subir archivo</p>
+<p class="text-[10px] text-slate-400">PNG, JPG, HEIC o captura digital (máx. 10MB)</p>
+<!-- Preset simulated quick test invoice buttons -->
+<div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-center gap-2" onclick="event.stopPropagation()">
+<span class="text-[10px] text-slate-400">Simular ticket:</span>
+<button class="px-2 py-1 text-[10px] rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10 transition-colors cursor-pointer" onclick="loadSimulatedReceipt('supermercado')" type="button">
+              🛒 Wong / Metro (S/. 184.50)
+            </button>
+<button class="px-2 py-1 text-[10px] rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 border border-white/10 transition-colors cursor-pointer" onclick="loadSimulatedReceipt('gasolina')" type="button">
+              ⛽ Repsol (S/. 120.00)
+            </button>
+</div>
+</div>
+<!-- OCR Scanning Card Preview -->
+<div class="hidden glass-panel rounded-2xl p-4 border border-purple-500/30 relative" id="scanPreviewCard">
+<div class="flex items-start gap-3">
+<div class="w-16 h-20 rounded-xl overflow-hidden bg-black/50 border border-white/15 relative shrink-0">
+<img alt="Recibo" class="w-full h-full object-cover" id="scannedImageThumb" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXodiUIsbi4baUqGNDfQXfhLYiSJ8_PWJw5S2oKt4Yxk8DIrkS93WP1DI5n3wy1u1wvC722FzvJ3gF_pDKYKcoEF-lDX9hn9IOQC4jiDig8yEKLXCkyJjJZ1FceOVkbouYXXeGvLn4C7yW3KCd9EByTTdr7ufsm6wNz9-9R0bGpp57uIwFXKKEiDcRiKUVvY6INHmCCDgMoWPSBYCuhdsIYUcZIb11P3xjDhgc8MipCHSl2ZwshzUP">
+<div class="absolute inset-0 bg-purple-900/60 flex items-center justify-center" id="ocrScanningOverlay">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="loader-2" aria-hidden="true" class="lucide lucide-loader-2 w-5 h-5 text-purple-300 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 text-[9px] rounded-md font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30" id="ocrStatusBadge">
+                  Procesando OCR...
+                </span>
+<button class="text-slate-400 hover:text-rose-400 cursor-pointer" onclick="clearScannedReceipt()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-4 h-4"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+</button>
+</div>
+<p class="text-xs font-bold text-white mt-1 truncate" id="ocrSummaryTitle">Documento escaneado</p>
+<p class="text-[11px] text-slate-300 line-clamp-2 mt-0.5" id="ocrExtractedSnippet">Analizando texto fiscal y totalizador...</p>
+</div>
+</div>
+</div>
+<!-- Receipt Form Fields -->
+<form class="glass-panel rounded-2xl p-4 space-y-3.5 border border-white/10" id="receiptConfirmForm" onsubmit="confirmReceiptTransaction(event)">
+<!-- Segmented Control: Gasto vs Ingreso -->
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">Tipo de Transacción</label>
+<div class="grid grid-cols-2 p-1 bg-black/40 rounded-xl border border-white/10">
+<button class="py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-pointer" id="btnTypeExpense" onclick="setScannerType('expense')" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right w-3.5 h-3.5"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg> Gasto (-)
+              </button>
+<button class="py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer" id="btnTypeIncome" onclick="setScannerType('income')" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-down-left" aria-hidden="true" class="lucide lucide-arrow-down-left w-3.5 h-3.5"><path d="M17 7 7 17"></path><path d="M17 17H7V7"></path></svg> Ingreso (+)
+              </button>
+</div>
+</div>
+<!-- Monto Extraído / Editable -->
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Monto (S/.)</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">S/.</span>
+<input class="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-sm font-bold text-white focus:outline-none" id="scannerAmount" min="0.01" placeholder="0.00" required="" step="0.01" type="number">
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Categoría</label>
+<select class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none bg-[#0e131d]" id="scannerCategory">
+<option value="Alimentación">🍔 Alimentación</option>
+<option value="Transporte">🚗 Transporte</option>
+<option value="Vivienda">🏠 Vivienda / Servicios</option>
+<option value="Entretenimiento">🎬 Entretenimiento</option>
+<option value="Salud">💊 Salud &amp; Medicina</option>
+<option value="Educación">📚 Educación</option>
+<option value="Ingreso">💼 Salario / Factura</option>
+<option value="Otros">📦 Otros</option>
+</select>
+</div>
+</div>
+<!-- Concepto / Título -->
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Comercio / Concepto</label>
+<input class="w-full glass-input rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none" id="scannerTitle" placeholder="Ej. Supermercados Wong S.A." required="" type="text">
+</div>
+<!-- Nota / Comentario de confirmación -->
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Comentarios / Notas Adicionales</label>
+<textarea class="w-full glass-input rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none resize-none" id="scannerNotes" placeholder="Ej. Factura F001-4921, compra semanal de insumos..." rows="2"></textarea>
+</div>
+<!-- Confirm Action CTA -->
+<button class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-display font-bold text-sm shadow-glow-purple flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer" type="submit">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle" aria-hidden="true" class="lucide lucide-check-circle w-4 h-4"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11 3 3L22 4"></path></svg> Confirmar y Actualizar Balance
+          </button>
+</form>
+</section>
+<!-- ================= SECTION 3: TAB ANALYTICS / REPORTE ================= -->
+<section class="space-y-5 animate-fade hidden" id="tab-analytics">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-lg font-bold text-white font-display">Analiticas</h2>
+<p class="text-xs text-slate-400">Distribución de gastos y flujo de caja mensual</p>
+</div>
+<span class="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold">
+            Mes Actual
+          </span>
+</div>
+<!-- Category Doughnut Chart Glass Card -->
+<div class="glass-panel rounded-3xl p-5 border border-white/10 space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+<h3 class="text-xs font-bold text-white uppercase tracking-wider font-display">Gastos por Categoría</h3>
+</div>
+<span class="text-xs font-bold text-rose-400 font-display" id="chartExpenseTotalBadge">-S/. 1,750.00</span>
+</div>
+<div class="relative h-56 flex items-center justify-center">
+<canvas height="0" id="categoryDoughnutChart" style="box-sizing: border-box; display: block; height: 0px; width: 0px;" width="0"></canvas>
+</div>
+<!-- Category Legend Highlights -->
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]" id="categoryLegendContainer">
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-black/20">
+                <span class="flex items-center gap-1.5 text-slate-300 truncate">
+                  <span class="w-2 h-2 rounded-full" style="background-color: #f59e0b"></span>
+                  Alimentación
+                </span>
+                <span class="font-bold text-white font-display">S/. 480.50</span>
+              </div>
+            
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-black/20">
+                <span class="flex items-center gap-1.5 text-slate-300 truncate">
+                  <span class="w-2 h-2 rounded-full" style="background-color: #3b82f6"></span>
+                  Transporte
+                </span>
+                <span class="font-bold text-white font-display">S/. 190.00</span>
+              </div>
+            
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-black/20">
+                <span class="flex items-center gap-1.5 text-slate-300 truncate">
+                  <span class="w-2 h-2 rounded-full" style="background-color: #8b5cf6"></span>
+                  Vivienda
+                </span>
+                <span class="font-bold text-white font-display">S/. 850.00</span>
+              </div>
+            
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-black/20">
+                <span class="flex items-center gap-1.5 text-slate-300 truncate">
+                  <span class="w-2 h-2 rounded-full" style="background-color: #ec4899"></span>
+                  Entretenimiento
+                </span>
+                <span class="font-bold text-white font-display">S/. 229.50</span>
+              </div>
+            </div>
+</div>
+<!-- Cashflow Monthly Bar Comparison Chart -->
+<div class="glass-panel rounded-3xl p-5 border border-white/10 space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+<h3 class="text-xs font-bold text-white uppercase tracking-wider font-display">Flujo de Caja (Ingreso vs Gasto)</h3>
+</div>
+<span class="text-[10px] text-slate-400">Últimos 4 meses</span>
+</div>
+<div class="relative h-48">
+<canvas height="0" id="cashflowBarChart" style="box-sizing: border-box; display: block; height: 0px; width: 0px;" width="0"></canvas>
+</div>
+</div>
+</section>
+<!-- ================= SECTION 4: TAB PERFIL ================= -->
+<section class="space-y-4 animate-fade hidden" id="tab-profile">
+<div class="glass-panel rounded-3xl p-6 border border-white/10 text-center relative overflow-hidden">
+<div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-1 shadow-glow-blue mb-3">
+<div class="w-full h-full bg-[#0d121c] rounded-full flex items-center justify-center text-2xl font-bold font-display text-white">
+              A
+            </div>
+</div>
+<h2 class="text-base font-bold text-white font-display">Alex Mendoza R.</h2>
+<p class="text-xs text-blue-400 font-medium">alex.mendoza@controlpro.pe</p>
+<span class="inline-block mt-2 px-3 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-semibold">
+            Membresía Founder • PWA Pro
+          </span>
+</div>
+<div class="glass-panel rounded-2xl p-4 border border-white/10 space-y-3">
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-display">Configuración de Cuenta</h3>
+<div class="flex items-center justify-between py-2 border-b border-white/5">
+<span class="text-xs text-slate-200 flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="coins" aria-hidden="true" class="lucide lucide-coins w-4 h-4 text-amber-400"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48"></path><path d="M15 6h1v4"></path><path d="m6.134 14.768.866-.5 2 3.464"></path><circle cx="16" cy="8" r="6"></circle></svg> Moneda Principal
+            </span>
+<span class="text-xs font-bold text-white">PEN (S/.)</span>
+</div>
+<div class="flex items-center justify-between py-2 border-b border-white/5">
+<span class="text-xs text-slate-200 flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="database" aria-hidden="true" class="lucide lucide-database w-4 h-4 text-emerald-400"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg> Almacenamiento Local
+            </span>
+<span class="text-xs font-bold text-emerald-400">Sincronizado (LocalStorage)</span>
+</div>
+<div class="flex items-center justify-between py-2">
+<span class="text-xs text-slate-200 flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="bell" aria-hidden="true" class="lucide lucide-bell w-4 h-4 text-purple-400"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg> Alertas de Presupuesto
+            </span>
+<div class="w-9 h-5 bg-blue-600 rounded-full relative cursor-pointer">
+<div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 rounded-2xl glass-card border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer" onclick="clearAllDataAndReset()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" class="lucide lucide-trash-2 w-4 h-4"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Restablecer todos los datos del App
+        </button>
+</section>
+</main>
+<!-- ================= FLOATING ACTION & BOTTOM SHEET MODAL (NUEVA TRANSACCIÓN) ================= -->
+<div class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 transition-opacity duration-300 flex items-end justify-center opacity-0 hidden" id="modalOverlay" onclick="closeTransactionModal(event)">
+<div class="w-full max-w-[430px] glass-panel bg-[#0d121c]/95 rounded-t-[32px] border-t border-x border-white/15 p-6 space-y-4 shadow-2xl transform transition-transform duration-300 translate-y-full" id="modalContent" onclick="event.stopPropagation()">
+<!-- Sheet Handle Drag indicator -->
+<div class="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-1 mb-2"></div>
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-white font-display flex items-center gap-2">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle w-5 h-5 text-blue-400"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg> Registrar Movimiento
+          </h3>
+<button class="w-8 h-8 rounded-full glass-card flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors" onclick="closeTransactionModal()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+</button>
+</div>
+<!-- Transaction Type Switch -->
+<div class="grid grid-cols-2 p-1 bg-black/40 rounded-xl border border-white/10">
+<button class="py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-pointer" id="modalBtnExpense" onclick="setModalType('expense')" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right w-3.5 h-3.5"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg> Gasto (-)
+          </button>
+<button class="py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer" id="modalBtnIncome" onclick="setModalType('income')" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-down-left" aria-hidden="true" class="lucide lucide-arrow-down-left w-3.5 h-3.5"><path d="M17 7 7 17"></path><path d="M17 17H7V7"></path></svg> Ingreso (+)
+          </button>
+</div>
+<!-- Form Fields -->
+<form class="space-y-3.5" id="manualTransactionForm" onsubmit="handleManualSubmit(event)">
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Monto (S/.)</label>
+<div class="relative">
+<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">S/.</span>
+<input class="w-full glass-input rounded-xl pl-11 pr-3 py-2.5 text-base font-bold text-white placeholder-slate-500 focus:outline-none" id="modalAmount" min="0.01" placeholder="0.00" required="" step="0.01" type="number">
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Concepto o Descripción</label>
+<input class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none" id="modalTitle" placeholder="Ej. Almuerzo menú, Salario Quincenal..." required="" type="text">
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Categoría</label>
+<select class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none bg-[#0e131d]" id="modalCategory">
+<option value="Alimentación">🍔 Alimentación</option>
+<option value="Transporte">🚗 Transporte</option>
+<option value="Vivienda">🏠 Vivienda</option>
+<option value="Entretenimiento">🎬 Entretenimiento</option>
+<option value="Salud">💊 Salud</option>
+<option value="Educación">📚 Educación</option>
+<option value="Salario">💼 Salario / Sueldo</option>
+<option value="Ingreso">📈 Otros Ingresos</option>
+<option value="Otros">📦 Otros</option>
+</select>
+</div>
+<div>
+<label class="block text-[11px] font-semibold text-slate-300 mb-1">Fecha</label>
+<input class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none bg-[#0e131d]" id="modalDate" required="" type="date">
+</div>
+</div>
+<button class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-display font-bold text-sm shadow-glow-blue flex items-center justify-center gap-2 active:scale-[0.98] transition-all mt-3 cursor-pointer" id="modalSubmitBtn" type="submit">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-4 h-4"><path d="M20 6 9 17l-5-5"></path></svg>
+<span class="">Guardar Movimiento</span>
+</button>
+</form>
+</div>
+</div>
+<!-- ================= FIXED PWA BOTTOM NAVIGATION BAR ================= -->
+<nav class="fixed bottom-0 w-full max-w-[430px] z-40 px-4 pb-4 pt-2">
+<div class="glass-panel bg-[#0a0d14]/90 rounded-3xl border border-white/10 px-3 py-2 flex items-center justify-around shadow-glass">
+<!-- Tab 1: Inicio -->
+<button class="nav-item flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all cursor-pointer text-blue-400" id="nav-btn-home" onclick="switchTab('home')">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="home" aria-hidden="true" class="lucide lucide-home w-5 h-5"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+<span class="text-[10px] font-semibold tracking-tight">Inicio</span>
+</button>
+<!-- Tab 2: Dashboard / Análisis -->
+<button class="nav-item flex flex-col items-center gap-1 hover:text-slate-200 py-1 px-3 rounded-2xl transition-all cursor-pointer text-slate-400" id="nav-btn-analytics" onclick="switchTab('analytics')">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="pie-chart" aria-hidden="true" class="lucide lucide-pie-chart w-5 h-5"><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"></path><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path></svg>
+<span class="text-[10px] font-semibold tracking-tight">Análisis</span>
+</button>
+<!-- Center Quick Scan Trigger -->
+<button class="flex flex-col items-center -mt-5 group transition-transform active:scale-95 cursor-pointer text-slate-400" id="nav-btn-scanner" onclick="switchTab('scanner')">
+<div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 text-white flex items-center justify-center shadow-glow-purple border-2 border-[#08090d]">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="scan" aria-hidden="true" class="lucide lucide-scan w-6 h-6"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path></svg>
+</div>
+<span class="text-[10px] font-bold text-purple-400 mt-1">Escanear</span>
+</button>
+<!-- Tab 3: Perfil -->
+<button class="nav-item flex flex-col items-center gap-1 hover:text-slate-200 py-1 px-3 rounded-2xl transition-all cursor-pointer text-slate-400" id="nav-btn-profile" onclick="switchTab('profile')">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="user" aria-hidden="true" class="lucide lucide-user w-5 h-5"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+<span class="text-[10px] font-semibold tracking-tight">Perfil</span>
+</button>
+</div>
+</nav>
+<!-- Feedback Notification Toast -->
+<div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 glass-panel bg-emerald-950/90 border border-emerald-500/40 text-emerald-200 px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2 shadow-2xl transform transition-all duration-300 pointer-events-none translate-y-0 opacity-100" id="toastNotification">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2" aria-hidden="true" class="lucide lucide-check-circle-2 w-4 h-4 text-emerald-400"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>
+<span id="toastMessage" class="">Datos de demostración restaurados</span>
+</div>
+</div>
+<!-- APPLICATION LOGIC (Vanilla JS + LocalStorage + Chart.js) -->
+<script>
+    // State storage key
+    const STORAGE_KEY = 'control_gastos_pro_v2';
+
+    // Initial default seed dataset exactly matching the starting totals
+    const defaultData = {
+      transactions: [
+        { id: 1, type: 'income', title: 'Salario Tech Consulting', category: 'Ingreso', amount: 5200.00, date: '2025-05-01', notes: 'Abono en cuenta corriente' },
+        { id: 2, type: 'expense', title: 'Supermercado Wong Miraflores', category: 'Alimentación', amount: 480.50, date: '2025-05-02', notes: 'Ticket de compras mensuales' },
+        { id: 3, type: 'expense', title: 'Repsol Gasolina 97', category: 'Transporte', amount: 190.00, date: '2025-05-03', notes: 'Tanqueo de vehículo' },
+        { id: 4, type: 'expense', title: 'Alquiler & Mantenimiento', category: 'Vivienda', amount: 850.00, date: '2025-05-04', notes: 'Servicio mensual' },
+        { id: 5, type: 'expense', title: 'Cine & Streaming Plus', category: 'Entretenimiento', amount: 229.50, date: '2025-05-05', notes: 'Suscripción + entradas cine' }
+      ]
+    };
+
+    let appState = { ...defaultData };
+    let scannerSelectedType = 'expense';
+    let modalSelectedType = 'expense';
+    let doughnutChartInstance = null;
+    let cashflowChartInstance = null;
+
+    // Category icons and colors dictionary
+    const categoryMeta = {
+      'Alimentación': { icon: 'utensils', color: '#f59e0b', bg: 'bg-amber-500/15', text: 'text-amber-400' },
+      'Transporte': { icon: 'car', color: '#3b82f6', bg: 'bg-blue-500/15', text: 'text-blue-400' },
+      'Vivienda': { icon: 'home', color: '#8b5cf6', bg: 'bg-purple-500/15', text: 'text-purple-400' },
+      'Entretenimiento': { icon: 'film', color: '#ec4899', bg: 'bg-pink-500/15', text: 'text-pink-400' },
+      'Salud': { icon: 'heart-pulse', color: '#10b981', bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+      'Educación': { icon: 'book-open', color: '#06b6d4', bg: 'bg-cyan-500/15', text: 'text-cyan-400' },
+      'Salario': { icon: 'wallet-cards', color: '#10b981', bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+      'Ingreso': { icon: 'wallet-cards', color: '#10b981', bg: 'bg-emerald-500/15', text: 'text-emerald-400' },
+      'Otros': { icon: 'package', color: '#94a3b8', bg: 'bg-slate-500/15', text: 'text-slate-400' }
+    };
+
+    // Initialize application on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStorageData();
+      updateClock();
+      setInterval(updateClock, 1000);
+      setDefaultModalDate();
+      renderAll();
+    });
+
+    function updateClock() {
+      const now = new Date();
+      const hrs = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      const timeElem = document.getElementById('system-time');
+      if (timeElem) timeElem.innerText = `${hrs}:${mins}`;
+    }
+
+    function setDefaultModalDate() {
+      const today = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('modalDate');
+      if (dateInput && !dateInput.value) dateInput.value = today;
+    }
+
+    // LocalStorage load & persist
+    function loadStorageData() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          appState = JSON.parse(stored);
+        } else {
+          appState = JSON.parse(JSON.stringify(defaultData));
+          saveStorageData();
+        }
+      } catch (e) {
+        console.error('LocalStorage load failed, using default', e);
+        appState = JSON.parse(JSON.stringify(defaultData));
+      }
+    }
+
+    function saveStorageData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.error('LocalStorage save error', e);
+      }
+    }
+
+    // Main calculation & rendering orchestrator
+    function renderAll(highlightHero = false) {
+      calculateBalances(highlightHero);
+      renderTransactionsList(appState.transactions);
+      renderCharts();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    // Dynamic calculations: Total balance, income, expenses
+    function calculateBalances(highlight = false) {
+      let totalIncome = 0;
+      let totalExpense = 0;
+
+      appState.transactions.forEach(t => {
+        const amount = parseFloat(t.amount) || 0;
+        if (t.type === 'income') {
+          totalIncome += amount;
+        } else {
+          totalExpense += amount;
+        }
+      });
+
+      const netBalance = totalIncome - totalExpense;
+
+      const heroBal = document.getElementById('heroBalance');
+      const heroInc = document.getElementById('heroIncome');
+      const heroExp = document.getElementById('heroExpense');
+      const badgeChart = document.getElementById('chartExpenseTotalBadge');
+
+      if (heroBal) {
+        heroBal.innerText = formatCurrency(netBalance);
+        if (highlight) {
+          heroBal.classList.remove('value-pulse');
+          void heroBal.offsetWidth; // trigger reflow
+          heroBal.classList.add('value-pulse');
+        }
+      }
+
+      if (heroInc) {
+        heroInc.innerText = `+S/. ${formatCurrency(totalIncome)}`;
+        if (highlight) {
+          heroInc.classList.remove('value-pulse');
+          void heroInc.offsetWidth;
+          heroInc.classList.add('value-pulse');
+        }
+      }
+
+      if (heroExp) {
+        heroExp.innerText = `-S/. ${formatCurrency(totalExpense)}`;
+        if (highlight) {
+          heroExp.classList.remove('value-pulse');
+          void heroExp.offsetWidth;
+          heroExp.classList.add('value-pulse');
+        }
+      }
+
+      if (badgeChart) {
+        badgeChart.innerText = `-S/. ${formatCurrency(totalExpense)}`;
+      }
+    }
+
+    function formatCurrency(val) {
+      return (Number(val) || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // Render Transaction Cards
+    function renderTransactionsList(list) {
+      const container = document.getElementById('transactionsList');
+      if (!container) return;
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div class="glass-panel rounded-2xl p-6 text-center text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="receipt-text" class="w-8 h-8 mx-auto mb-2 opacity-40"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/></svg>
+            <p class="text-xs">No hay movimientos registrados.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = list.map((item, index) => {
+        const isIncome = item.type === 'income';
+        const meta = categoryMeta[item.category] || categoryMeta['Otros'];
+        const amountFormatted = isIncome ? `+S/. ${formatCurrency(item.amount)}` : `-S/. ${formatCurrency(item.amount)}`;
+        const amountColor = isIncome ? 'text-emerald-400' : 'text-rose-400';
+        const isNewest = index === 0 ? 'slide-in-row' : '';
+
+        return `
+          <div id="tx-item-${item.id}" class="glass-card hover:bg-white/[0.04] p-3.5 rounded-2xl flex items-center justify-between border border-white/5 transition-all group ${isNewest}">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl ${meta.bg} ${meta.text} flex items-center justify-center shrink-0 border border-white/5">
+                <i data-lucide="${meta.icon}" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-white truncate">${escapeHtml(item.title)}</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                  <span class="font-medium text-slate-300">${escapeHtml(item.category)}</span>
+                  <span>•</span>
+                  <span>${item.date || 'Reciente'}</span>
+                  ${item.notes ? `<span class="hidden sm:inline italic text-slate-500 truncate max-w-[120px]">"${escapeHtml(item.notes)}"</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-bold font-display ${amountColor}">${amountFormatted}</span>
+              <button type="button" onclick="deleteTransaction(${item.id})" title="Eliminar movimiento" class="w-7 h-7 rounded-lg glass-card text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Delete transaction handler - immediately recalibrates balance
+    function deleteTransaction(id) {
+      const target = appState.transactions.find(t => t.id === id);
+      if (!target) return;
+
+      const row = document.getElementById(`tx-item-${id}`);
+      if (row) {
+        row.style.transition = 'all 0.25s ease';
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(20px)';
+      }
+
+      setTimeout(() => {
+        appState.transactions = appState.transactions.filter(t => t.id !== id);
+        saveStorageData();
+        renderAll(true);
+        showToast(`Movimiento eliminado (${target.title})`);
+      }, 200);
+    }
+
+    // Navigation Switcher
+    function switchTab(tabId) {
+      const tabs = ['home', 'scanner', 'analytics', 'profile'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`nav-btn-${t}`);
+        if (sec) {
+          if (t === tabId) {
+            sec.classList.remove('hidden');
+          } else {
+            sec.classList.add('hidden');
+          }
+        }
+        if (btn) {
+          if (t === tabId) {
+            btn.classList.add('text-blue-400');
+            btn.classList.remove('text-slate-400');
+          } else {
+            btn.classList.remove('text-blue-400');
+            btn.classList.add('text-slate-400');
+          }
+        }
+      });
+
+      if (tabId === 'analytics') {
+        setTimeout(renderCharts, 80);
+      }
+      if (window.lucide) lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Modal Control
+    function openTransactionModal() {
+      const overlay = document.getElementById('modalOverlay');
+      const content = document.getElementById('modalContent');
+      setDefaultModalDate();
+
+      if (overlay && content) {
+        overlay.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          overlay.classList.remove('opacity-0');
+          overlay.classList.add('opacity-100');
+          content.classList.remove('translate-y-full');
+        });
+        setTimeout(() => {
+          const amtInput = document.getElementById('modalAmount');
+          if (amtInput) amtInput.focus();
+        }, 150);
+      }
+    }
+
+    function closeTransactionModal(e) {
+      if (e && e.target !== e.currentTarget && e.target.closest('#modalContent') && !e.target.closest('button[onclick="closeTransactionModal()"]')) {
+        return;
+      }
+      const overlay = document.getElementById('modalOverlay');
+      const content = document.getElementById('modalContent');
+      if (overlay && content) {
+        content.classList.add('translate-y-full');
+        overlay.classList.remove('opacity-100');
+        overlay.classList.add('opacity-0');
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+        }, 280);
+      }
+    }
+
+    function setModalType(type) {
+      modalSelectedType = type;
+      const btnExp = document.getElementById('modalBtnExpense');
+      const btnInc = document.getElementById('modalBtnIncome');
+      const catSelect = document.getElementById('modalCategory');
+
+      if (type === 'expense') {
+        btnExp.className = "py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-pointer";
+        btnInc.className = "py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (catSelect && catSelect.value === 'Salario') {
+          catSelect.value = "Alimentación";
+        }
+      } else {
+        btnInc.className = "py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-pointer";
+        btnExp.className = "py-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (catSelect) catSelect.value = "Salario";
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Modal submit: registers new item, adds to top, dynamic recalculation
+    function handleManualSubmit(e) {
+      e.preventDefault();
+      const amountVal = parseFloat(document.getElementById('modalAmount').value);
+      const titleVal = document.getElementById('modalTitle').value.trim();
+      const categoryVal = document.getElementById('modalCategory').value;
+      const dateVal = document.getElementById('modalDate').value || new Date().toISOString().split('T')[0];
+
+      if (!amountVal || isNaN(amountVal) || amountVal <= 0 || !titleVal) {
+        alert('Por favor ingrese un monto válido y una descripción.');
+        return;
+      }
+
+      const newTx = {
+        id: Date.now(),
+        type: modalSelectedType,
+        title: titleVal,
+        category: categoryVal,
+        amount: Math.round(amountVal * 100) / 100,
+        date: dateVal,
+        notes: modalSelectedType === 'income' ? 'Ingreso manual' : 'Gasto manual'
+      };
+
+      // Insert at the beginning
+      appState.transactions.unshift(newTx);
+      saveStorageData();
+      
+      closeTransactionModal();
+      document.getElementById('manualTransactionForm').reset();
+      setDefaultModalDate();
+      setModalType('expense'); // reset default to expense
+
+      // Make sure we are on the Home tab so user sees the change
+      switchTab('home');
+      renderAll(true);
+      showToast(`¡${newTx.type === 'income' ? 'Ingreso' : 'Gasto'} de S/. ${formatCurrency(newTx.amount)} registrado!`);
+    }
+
+    // Receipt Scanner Interactions
+    function triggerFileInput() {
+      document.getElementById('receiptFileInput').click();
+    }
+
+    function setScannerType(type) {
+      scannerSelectedType = type;
+      const btnExp = document.getElementById('btnTypeExpense');
+      const btnInc = document.getElementById('btnTypeIncome');
+      const catSelect = document.getElementById('scannerCategory');
+
+      if (type === 'expense') {
+        btnExp.className = "py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 cursor-pointer";
+        btnInc.className = "py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (catSelect) catSelect.value = "Alimentación";
+      } else {
+        btnInc.className = "py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-pointer";
+        btnExp.className = "py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer";
+        if (catSelect) catSelect.value = "Ingreso";
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        showScannedPreview(e.target.result, file.name);
+        simulateOcrExtraction("ticket_user");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadSimulatedReceipt(type) {
+      let previewUrl = "";
+      if (type === 'supermercado') {
+        previewUrl = "https://images.unsplash.com/photo-1554415707-9e49016a3e26?auto=format&fit=crop&w=300&q=80";
+        showScannedPreview(previewUrl, "Factura_Wong_Miraflores.jpg");
+        simulateOcrExtraction('supermercado');
+      } else {
+        previewUrl = "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=300&q=80";
+        showScannedPreview(previewUrl, "Comprobante_Repsol_GLP.jpg");
+        simulateOcrExtraction('gasolina');
+      }
+    }
+
+    function showScannedPreview(imgSrc, fileName) {
+      const card = document.getElementById('scanPreviewCard');
+      const img = document.getElementById('scannedImageThumb');
+      const title = document.getElementById('ocrSummaryTitle');
+      const overlay = document.getElementById('ocrScanningOverlay');
+      const badge = document.getElementById('ocrStatusBadge');
+
+      if (img) img.src = imgSrc;
+      if (title) title.innerText = fileName;
+      if (card) card.classList.remove('hidden');
+      if (overlay) overlay.classList.remove('hidden');
+      if (badge) {
+        badge.className = "px-2 py-0.5 text-[9px] rounded-md font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        badge.innerText = "Analizando con OCR...";
+      }
+    }
+
+    function simulateOcrExtraction(presetKey) {
+      const overlay = document.getElementById('ocrScanningOverlay');
+      const badge = document.getElementById('ocrStatusBadge');
+      const snippet = document.getElementById('ocrExtractedSnippet');
+
+      setTimeout(() => {
+        if (overlay) overlay.classList.add('hidden');
+        if (badge) {
+          badge.className = "px-2 py-0.5 text-[9px] rounded-md font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+          badge.innerText = "✓ OCR Éxito (Confianza: 98.4%)";
+        }
+
+        if (presetKey === 'supermercado') {
+          document.getElementById('scannerAmount').value = "184.50";
+          document.getElementById('scannerTitle').value = "Supermercados Wong S.A. - Ticket #9482";
+          document.getElementById('scannerCategory').value = "Alimentación";
+          document.getElementById('scannerNotes').value = "Factura B002-19842. Canasta familiar y lácteos.";
+          setScannerType('expense');
+          snippet.innerText = "RUC: 20100070970 | SUBTOTAL: S/. 156.36 | IGV: S/. 28.14 | TOTAL: S/. 184.50";
+        } else if (presetKey === 'gasolina') {
+          document.getElementById('scannerAmount').value = "120.00";
+          document.getElementById('scannerTitle').value = "Estación de Servicios Repsol Javier Prado";
+          document.getElementById('scannerCategory').value = "Transporte";
+          document.getElementById('scannerNotes').value = "Boleta Electrónica B12-4029. Combustible G-97.";
+          setScannerType('expense');
+          snippet.innerText = "RUC: 20263728191 | Galones: 6.81 | Monto Facturado: S/. 120.00 PEN";
+        } else {
+          document.getElementById('scannerAmount').value = "65.00";
+          document.getElementById('scannerTitle').value = "Comercio Local Escaneado";
+          document.getElementById('scannerCategory').value = "Alimentación";
+          document.getElementById('scannerNotes').value = "Lectura OCR automática completada sin errores fiscales.";
+          setScannerType('expense');
+          snippet.innerText = "Texto fiscal detectado: TOTAL S/. 65.00 | Medio de pago: VISA Débito";
+        }
+
+        showToast('Datos extraídos del comprobante');
+        if (window.lucide) lucide.createIcons();
+      }, 700);
+    }
+
+    function clearScannedReceipt() {
+      document.getElementById('scanPreviewCard').classList.add('hidden');
+      document.getElementById('receiptFileInput').value = '';
+      document.getElementById('receiptConfirmForm').reset();
+    }
+
+    function confirmReceiptTransaction(e) {
+      e.preventDefault();
+      const amountVal = parseFloat(document.getElementById('scannerAmount').value);
+      const titleVal = document.getElementById('scannerTitle').value.trim();
+      const categoryVal = document.getElementById('scannerCategory').value;
+      const notesVal = document.getElementById('scannerNotes').value.trim();
+
+      if (!amountVal || isNaN(amountVal) || amountVal <= 0 || !titleVal) return;
+
+      const newTx = {
+        id: Date.now(),
+        type: scannerSelectedType,
+        title: titleVal,
+        category: categoryVal,
+        amount: Math.round(amountVal * 100) / 100,
+        date: new Date().toISOString().split('T')[0],
+        notes: notesVal || 'Factura escaneada con OCR'
+      };
+
+      appState.transactions.unshift(newTx);
+      saveStorageData();
+      clearScannedReceipt();
+      switchTab('home');
+      renderAll(true);
+      showToast(`¡Movimiento registrado con éxito!`);
+    }
+
+    // Chart.js Rendering Logic
+    function renderCharts() {
+      renderCategoryDoughnut();
+      renderCashflowBar();
+    }
+
+    function renderCategoryDoughnut() {
+      const ctx = document.getElementById('categoryDoughnutChart');
+      if (!ctx) return;
+
+      const expenseMap = {};
+      appState.transactions.filter(t => t.type === 'expense').forEach(t => {
+        const cat = t.category || 'Otros';
+        expenseMap[cat] = (expenseMap[cat] || 0) + (parseFloat(t.amount) || 0);
+      });
+
+      const categories = Object.keys(expenseMap);
+      const values = Object.values(expenseMap);
+      const colors = categories.map(c => (categoryMeta[c] ? categoryMeta[c].color : '#6366f1'));
+
+      if (doughnutChartInstance) {
+        doughnutChartInstance.destroy();
+      }
+
+      doughnutChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: categories.length ? categories : ['Sin Gastos'],
+          datasets: [{
+            data: values.length ? values : [1],
+            backgroundColor: colors.length ? colors : ['#334155'],
+            borderColor: '#08090d',
+            borderWidth: 3,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#e2e8f0',
+              bodyColor: '#38bdf8',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(ctx) {
+                  return ` S/. ${formatCurrency(ctx.raw)}`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Render legend pill container
+      const legendContainer = document.getElementById('categoryLegendContainer');
+      if (legendContainer) {
+        if (categories.length === 0) {
+          legendContainer.innerHTML = `<span class="col-span-2 text-center text-slate-500 py-2">Sin gastos registrados</span>`;
+        } else {
+          legendContainer.innerHTML = categories.map(cat => {
+            const val = expenseMap[cat];
+            const meta = categoryMeta[cat] || categoryMeta['Otros'];
+            return `
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-black/20">
+                <span class="flex items-center gap-1.5 text-slate-300 truncate">
+                  <span class="w-2 h-2 rounded-full" style="background-color: ${meta.color}"></span>
+                  ${cat}
+                </span>
+                <span class="font-bold text-white font-display">S/. ${formatCurrency(val)}</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function renderCashflowBar() {
+      const ctx = document.getElementById('cashflowBarChart');
+      if (!ctx) return;
+
+      if (cashflowChartInstance) {
+        cashflowChartInstance.destroy();
+      }
+
+      let currentIncome = 0;
+      let currentExpense = 0;
+      appState.transactions.forEach(t => {
+        const val = parseFloat(t.amount) || 0;
+        if (t.type === 'income') currentIncome += val;
+        else currentExpense += val;
+      });
+
+      const labels = ['Feb', 'Mar', 'Abr', 'May (Actual)'];
+      const incomeData = [4500, 4800, 5000, currentIncome];
+      const expenseData = [2100, 2600, 1950, currentExpense];
+
+      cashflowChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Ingresos',
+              data: incomeData,
+              backgroundColor: '#10b981',
+              borderRadius: 6,
+              barPercentage: 0.6,
+            },
+            {
+              label: 'Gastos',
+              data: expenseData,
+              backgroundColor: '#f43f5e',
+              borderRadius: 6,
+              barPercentage: 0.6,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: {
+                color: '#94a3b8',
+                font: { size: 10 },
+                callback: (val) => `S/. ${val >= 1000 ? (val/1000) + 'k' : val}`
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#cbd5e1',
+                boxWidth: 10,
+                font: { size: 10 }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#e2e8f0',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(ctx) {
+                  return ` ${ctx.dataset.label}: S/. ${formatCurrency(ctx.raw)}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Search & Filter
+    function toggleQuickSearch() {
+      const panel = document.getElementById('quickSearchPanel');
+      if (panel) {
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          document.getElementById('searchInput').focus();
+        }
+      }
+    }
+
+    function filterTransactions(query) {
+      const q = query.toLowerCase().trim();
+      if (!q) {
+        renderTransactionsList(appState.transactions);
+        return;
+      }
+      const filtered = appState.transactions.filter(t => 
+        (t.title && t.title.toLowerCase().includes(q)) ||
+        (t.category && t.category.toLowerCase().includes(q)) ||
+        (t.notes && t.notes.toLowerCase().includes(q))
+      );
+      renderTransactionsList(filtered);
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      renderTransactionsList(appState.transactions);
+      document.getElementById('quickSearchPanel').classList.add('hidden');
+    }
+
+    // Reset Helpers
+    function resetToSampleData() {
+      appState = JSON.parse(JSON.stringify(defaultData));
+      saveStorageData();
+      renderAll(true);
+      showToast('Datos de demostración restaurados');
+    }
+
+    function clearAllDataAndReset() {
+      if (confirm('¿Deseas vaciar todas las transacciones guardadas?')) {
+        appState = { transactions: [] };
+        saveStorageData();
+        renderAll(true);
+        showToast('Se limpiaron todos los datos.');
+      }
+    }
+
+    // Toast Notification Feedback
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const text = document.getElementById('toastMessage');
+      if (!toast || !text) return;
+      text.innerText = msg;
+      toast.classList.remove('-translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-20', 'opacity-0');
+      }, 2600);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text).replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+  </script>
+
+
+</body></html>

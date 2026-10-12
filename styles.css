@@ -1,0 +1,24 @@
+/* Fondo estilo Kokonut UI con degradados suaves y profundidad */
+.kokonut-bg {
+  background-color: #08090d;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.8) 0px, transparent 100%),
+    radial-gradient(at 80% 100%, rgba(29, 78, 216, 0.12) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Efecto de brillo de fondo animado/suave */
+.glow-effect {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
