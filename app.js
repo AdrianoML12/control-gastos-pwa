@@ -192,3 +192,56 @@ function closeModal() {
   const modal = document.getElementById('tx-modal');
   if (modal) modal.classList.add('hidden');
 }
+
+// --- LÓGICA DE PERFIL Y NOMBRE LOCAL ---
+
+// Cargar perfil guardado o asignar valor por defecto
+let userProfile = JSON.parse(localStorage.getItem('hotmart_user_profile')) || { name: 'Adriano' };
+
+// Actualizar textos e inicial del avatar en la pantalla
+function updateProfileUI() {
+  const greetingEl = document.getElementById('user-greeting');
+  const avatarEl = document.getElementById('user-avatar');
+  const nameDisplay = document.getElementById('user-display-name');
+
+  if (greetingEl) greetingEl.innerText = `Hola, ${userProfile.name}`;
+  if (nameDisplay) nameDisplay.innerText = userProfile.name;
+  if (avatarEl && userProfile.name) {
+    avatarEl.innerText = userProfile.name.charAt(0).toUpperCase();
+  }
+}
+
+// Abrir y cerrar el modal de perfil
+function openProfileModal() {
+  const modal = document.getElementById('profile-modal');
+  const nameInput = document.getElementById('profile-name-input');
+  if (modal) modal.classList.remove('hidden');
+  if (nameInput) nameInput.value = userProfile.name;
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById('profile-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Escuchar el evento de guardado del formulario
+document.addEventListener('DOMContentLoaded', () => {
+  updateProfileUI();
+
+  const profileForm = document.getElementById('profile-form');
+  if (profileForm) {
+    profileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newNameInput = document.getElementById('profile-name-input');
+      if (newNameInput && newNameInput.value.trim() !== '') {
+        userProfile.name = newNameInput.value.trim();
+        
+        // Guardar en la memoria local del dispositivo (LocalStorage)
+        localStorage.setItem('hotmart_user_profile', JSON.stringify(userProfile));
+        
+        updateProfileUI();
+        closeProfileModal();
+      }
+    });
+  }
+});
